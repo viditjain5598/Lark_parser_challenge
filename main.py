@@ -27,9 +27,7 @@ def run_instruction_print(t):
     if t.data == 'no_iter':
         print("for i in range(" + str(*t.children) + "):")  
     elif t.data == 'prnt_comm':
-        # str1 = ""
-        # str1.join(*t.children)
-        print("    print(\"\")")
+        print("    print(" + str(*(t.children[0]).children) + ")")
 
     else:
         raise SyntaxError('Unknown instruction: %s' % t.data)
@@ -41,17 +39,27 @@ def run_print(program):
 
 def test():
     text = """
-        repeat 20 print "hello"
+        repeat 20 print "hello world"
     """
     run_print(text)
 
+def main():
+    while True:
+        code = input('> ')
+        try:
+            run_turtle(code)
+        except Exception as e:
+            print(e)
+
+
 if __name__ == '__main__':
     test()
+    # main()
 
 #  output:
 #  
 #  for i in range(20):
-#     print("")
+#     print("hello world")
 
 
 
