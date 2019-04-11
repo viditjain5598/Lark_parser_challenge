@@ -44,17 +44,6 @@ PLUTO_grammar = """
     %import common.WS
     %ignore WS 
     """
-"""
-@v_args(inline = True)
-class PLUTO(Transformer):
-    def iter(self, NUMBER):
-        return "for i in range(" + str(NUMBER) + "):"
-    def print_comm(self, STRING):
-        return "    print(" + STRING + ")"
-
-PLUTO_parser = Lark(PLUTO_grammar, parser = "lalr", transformer = PLUTO())
-py_code = PLUTO_parser.parse
-"""
 parser = Lark(PLUTO_grammar)
 def run_print(program):
     parse_tree = parser.parse(program)
@@ -77,7 +66,7 @@ if __name__ == '__main__':
     # main()
 
 
-output:
+#output:
 """
 start
   procedure_body
@@ -107,29 +96,3 @@ start
 
 """
 
-""" procedure
-    initiate and confirm step step1
-        declare
-            variable CMD_TM_LINK_VALUE of type string,
-            variable TRSP2_RECEIVER_STATUS of type string
-        end declare
-        
-        CMD_TM_LINK_VALUE := "TM FLOW";
-        TRSP2_RECEIVER_STATUS := "TC tracking";
-            
-        if value of CMD_TM_LINK != CMD_TM_LINK_VALUE then
-            log "There is no TM FLOW.";
-        end if; 
-
-        if NTR80220 != TRSP2_RECEIVER_STATUS then
-            log "TRSP2 is " + NTR80220;
-        end if;
-
-    end step;
-    
-    initiate and confirm step step2
-        initiate and confirm ZDW17001;
-    end step;
-
-end procedure
-"""
