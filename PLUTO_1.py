@@ -28,14 +28,29 @@ PLUTO_code = """
         """
 PLUTO_grammar = """
     start : procedure
+    
     procedure: "procedure" procedure_body+ "end procedure"  -> procedure_body
-    procedure_body: "initiate and confirm step" STRING [declare_body] (assign_command | if_cond | init_comm)+ "end step;" ->step_name
+    
+    procedure_body: "initiate and confirm step" step_num [declare_body] (assign_command | if_cond | init_comm)+ "end step;" ->step_name
+    
+    step_num: STRING
+
     declare_body: "declare" var_declaration+ "end declare" 
-    var_declaration: "variable" STRING "of type" STRING
-    assign_command: STRING ":=" ESCAPED_STRING ";"
+    
+    var_declaration: "variable" STRING "of type" var_type
+    var_type: STRING
+    
+    assign_command: assigned ":=" assignee ";"
+    assigned: STRING
+    assignee: ESCAPED_STRING | NUMBER
+
     if_cond: "if" condition "then" exec_comm "end if;"
-    condition: STRING ("!=" | "=") STRING
-    exec_comm: "log" ESCAPED_STRING ";"
+    condition: first_cond "=" second_cond -> equality
+              | first_cond "!=" second_cond -> inequality
+    first_cond: STRING
+    second_cond: STRING
+    exec_comm: action ESCAPED_STRING ";"
+    action: STRING
     init_comm: "initiate and confirm" STRING ";"
 
     %import common.ESCAPED_STRING  
@@ -45,6 +60,7 @@ PLUTO_grammar = """
     %ignore WS 
     """
 parser = Lark(PLUTO_grammar)
+
 def run_print(program):
     parse_tree = parser.parse(program)
     print(parse_tree.pretty())
