@@ -10,27 +10,14 @@ PLUTO_code = """
                 initiate and confirm step step1
                     declare
                         variable CMD_TM_LINK_VALUE of type string
-                        variable TRSP2_RECEIVER_STATUS of type string
                     end declare
-        
-                    CMD_TM_LINK_VALUE := "TM FLOW";
-                    TRSP2_RECEIVER_STATUS := "TC tracking";
 
-                    if CMD_TM_LINK != CMD_TM_LINK_VALUE then
-                        log "There is no TM FLOw.";
-                    end if;
                 end step;
-                initiate and confirm step step2
-                    initiate and confirm ZDW17001;
-                end step;
-
-            end procedure
+          end procedure
         """
 PLUTO_grammar = """
     start : procedure
-    
-    procedure: "procedure" procedure_body+ "end procedure"  -> procedure_body
-    
+    procedure: "procedure" procedure_body+ "end procedure"  
     procedure_body: "initiate and confirm step" step_num [declare_body] (assign_command | if_cond | init_comm)+ "end step;" ->step_name
     
     step_num: STRING
@@ -53,17 +40,28 @@ PLUTO_grammar = """
     action: STRING
    
     init_comm: "initiate and confirm" STRING ";"
-
+    
     %import common.ESCAPED_STRING  
     %import common.CNAME -> STRING
     %import common.NUMBER -> NUMBER
     %import common.WS
     %ignore WS 
     """
-parser = Lark(PLUTO_grammar)
+@v_args(inline=True)
+class PLUTO(Transformer):
+    def step_num(self, STRING):
+        return "def " + str(STRING) +":"
+    def declare_body(self, var_declaration, var_name):
+        return var_declaration
+    def var_declaration(self, var_name, var_type):
+        if str(var_type.children[0]) == "string":
+            return "    " + str(var_name.children[0]) + " = \"\" " 
+
+parser = Lark(PLUTO_grammar, parser="lalr", transformer=PLUTO())
+py_code = parser.parse
 
 def run_print(program):
-    parse_tree = parser.parse(program)
+    parse_tree = py_code(program)
     print(parse_tree.pretty())
 
 def test():
