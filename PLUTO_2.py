@@ -115,31 +115,16 @@ if __name__ == '__main__':
 
 #output:
 """
-start
-  procedure_body
-    step_name
-      step1
-      declare_body
-        var_declaration
-          CMD_TM_LINK_VALUE
-          string
-        var_declaration
-          TRSP2_RECEIVER_STATUS
-          string
-      assign_command
-        CMD_TM_LINK_VALUE
-        "TM FLOW"
-      assign_command
-        TRSP2_RECEIVER_STATUS
-        "TC tracking"
-      if_cond
-        condition
-          CMD_TM_LINK
-          CMD_TM_LINK_VALUE
-        exec_comm       "There is no TM FLOw."
-    step_name
-      step2
-      init_comm ZDW17001
-
+def step1:
+    CMD_TM_LINK_VALUE = ""
+    TRSP2_RECEIVER_STATUS = ""
+    CMD_TM_LINK_VALUE = "TM FLOW"
+    TRSP2_RECEIVER_STATUS = "TC tracking"
+    if CMD_TM_LINK != CMD_TM_LINK_VALUE:
+        log("There is no TM FLOW.")
+    if NTR80220 != TRSP2_RECEIVER_STATUS:
+        log("TRSP2 is  + NTR80220")
+def step2:
+    initiate(ZDW17001)
 """
 
