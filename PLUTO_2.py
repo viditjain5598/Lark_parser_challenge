@@ -19,6 +19,10 @@ PLUTO_code = """
                     if CMD_TM_LINK != CMD_TM_LINK_VALUE then
                         log "There is no TM FLOW.";
                     end if;
+                    if NTR80220 != TRSP2_RECEIVER_STATUS then
+                        log "TRSP2 is + NTR80220";
+                    end if;
+
                 end step;
                 initiate and confirm step step2
                     initiate and confirm ZDW17001;
@@ -60,20 +64,46 @@ PLUTO_grammar = """
     %import common.WS
     %ignore WS 
     """
+
 parser = Lark(PLUTO_grammar)
+py_code = parser.parse
 
-def run_print(program):
-    parse_tree = parser.parse(program)
-    print(parse_tree.pretty())
-
+def run_convert(parse_tree):
+    pyth_str = ""
+    if hasattr(parse_tree, 'data'):
+        if parse_tree.data == "step_name":
+            pyth_str += "def " + str(parse_tree.children[0].children[0]) + ":\n" 
+        if parse_tree.data == "var_declaration":
+            pyth_str += "    " + str(parse_tree.children[0]) + " = \"\"\n"
+        if parse_tree.data == "assign_command":
+            pyth_str += "    " + str(parse_tree.children[0].children[0]) \
+            + " = " + str(parse_tree.children[1].children[0]) + "\n"
+        if parse_tree.data == "if_cond":
+            pyth_str += "    if " + str(parse_tree.children[0].children[0].children[0])
+            if str(parse_tree.children[0].data) == "inequality":
+                pyth_str += " != "
+            elif str(parse_tree.children[0].data) == "equality":
+                pyth_str += " == "
+            pyth_str += str(parse_tree.children[0].children[1].children[0]) + ":\n"
+            if parse_tree.children[1].data == "exec_comm":
+                pyth_str += "        log(" + str(parse_tree.children[1].children[1]) + ")\n"
+        if parse_tree.data == "init_comm":
+            pyth_str += "    initiate(" + str(parse_tree.children[0]) + ")\n"
+    if hasattr(parse_tree, 'children'):
+        for i in parse_tree.children:
+            pyth_str += run_convert(i);
+    return pyth_str
 def test():
-    run_print(PLUTO_code)
+    parse_tree = py_code(PLUTO_code)
+    #print(parse_tree.pretty())
+    pyth_str = run_convert(parse_tree)
+    print(pyth_str)
 
 def main():
     while True:
         code = input('> ')
         try:
-            run_print(code)
+            run_convert(code)
         except Exception as e:
             print(e)
 

@@ -10,23 +10,27 @@ PLUTO_code = """
                 initiate and confirm step step1
                     declare
                         variable CMD_TM_LINK_VALUE of type string
+                        variable TRSP2_RECEIVER_STATUS of type string                        
                     end declare
 
+                    CMD_TM_LINK_VALUE := "TM FLOW";
                 end step;
           end procedure
         """
 PLUTO_grammar = """
     start : procedure
-    procedure: "procedure" procedure_body+ "end procedure"  
-    procedure_body: "initiate and confirm step" step_num [declare_body] (assign_command | if_cond | init_comm)+ "end step;" ->step_name
+    procedure: "procedure" procedure_body "end procedure"  
+    procedure_body: "initiate and confirm step" step_num [declare_body] assign_body "end step;" ->step_name
     
     step_num: STRING
 
     declare_body: "declare" var_declaration+ "end declare" 
     
-    var_declaration: "variable" STRING "of type" var_type
-    var_type: STRING
+    var_declaration: "variable" var_name "of type" var_type
+    var_type: STRING -> var_type
+    var_name: STRING -> var_name
     
+    assign_body: assign_command
     assign_command: assigned ":=" assignee ";"
     assigned: STRING
     assignee: ESCAPED_STRING | NUMBER
@@ -49,13 +53,17 @@ PLUTO_grammar = """
     """
 @v_args(inline=True)
 class PLUTO(Transformer):
-    def step_num(self, STRING):
-        return "def " + str(STRING) +":"
-    def declare_body(self, var_declaration, var_name):
-        return var_declaration
-    def var_declaration(self, var_name, var_type):
-        if str(var_type.children[0]) == "string":
-            return "    " + str(var_name.children[0]) + " = \"\" " 
+  def ff():
+    return 0
+    # def step_num(self, STRING):
+    #     return "def " + str(STRING) +":"
+    # def declare_body(self, *var_declaration):
+    #     return var_declaration
+    # def var_declaration(self, var_name, var_type):
+    #     if str(var_type.children[0]) == "string":
+    #         return "    " + str(var_name.children[0]) + " = \"\" " 
+    # def assign_command(self, assigned, assignee):
+    #   return "    " + str(assigned.children[0]) + " = " + str(assignee.children[0])
 
 parser = Lark(PLUTO_grammar, parser="lalr", transformer=PLUTO())
 py_code = parser.parse
@@ -71,7 +79,7 @@ def main():
     while True:
         code = input('> ')
         try:
-            run_turtle(code)
+            run_print(code)
         except Exception as e:
             print(e)
 
